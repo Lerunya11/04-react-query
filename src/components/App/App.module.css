@@ -1,43 +1,64 @@
-/* Container */
+/* src/components/App/App.module.css */
 .app {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 0 16px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* Header with divider */
+/* Header */
+/* Верхняя панель: бренд слева + поиск справа */
 .header {
-  border-bottom: 1px solid #d1d5db;
-  padding-bottom: 10px;
-  margin-bottom: 16px;
-}
-
-.h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  font-weight: 800;
-  color: #1f2937;
-}
-
-.headerBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid #d1d5db; /* чуть более контрастная линия, как в демо */
+  margin-bottom: 10px; /* создаёт дыхание над карточками */
+}
+
+/* “Powered by TMDB” */
+.brand {
+  color: #0a66c2;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Контейнер справа под поиск */
+.headerRight {
+  width: 480px; /* немного меньше, чем было */
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Универсальная адаптация — чтобы не ломалось при изменении ширины */
+.headerRight :global(form) {
   width: 100%;
+}
+
+.headerRight :global(input[type="text"]),
+.headerRight :global(input[type="search"]) {
+  height: 40px;
+  font-size: 15px;
+}
+
+.headerRight :global(button) {
+  height: 40px;
+  font-size: 15px;
 }
 
 .brand {
   color: #0a66c2;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 16px;               
+  font-weight: 600;              
+  white-space: nowrap;           
 }
-
-/* Empty/No-results/Error box */
+/* блок подсказок/ошибок */
 .stateBox {
   width: 100%;
   background: #fff;
@@ -47,7 +68,6 @@
   border-radius: 10px;
 }
 
-/* Top pagination container */
 .topBar {
   width: 100%;
   display: flex;
@@ -57,16 +77,15 @@
   margin-bottom: 4px;
 }
 
-/* ReactPaginate styles per task */
+/* Пагинация (из ТЗ) */
 .pagination {
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin: 16px 0;
+  margin: 8px 0 16px;
   list-style: none;
   padding: 0;
 }
-
 .pagination li {
   width: 40px;
   height: 40px;
@@ -76,30 +95,18 @@
   border-radius: 4px;
   transition: background 0.15s ease;
 }
-
-.pagination li:hover {
-  background: #f3f4f6;
-}
-
+.pagination li:hover { background: #f3f4f6; }
 .pagination a {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   color: #111827;
   text-decoration: none;
   font-weight: 500;
 }
-
 .active {
   background-color: #0a66c2;
   color: #fff;
   font-weight: bold;
-}
-
-.disabled {
-  opacity: 0.5;
-  cursor: default;
-  pointer-events: none;
 }

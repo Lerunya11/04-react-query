@@ -1,90 +1,81 @@
-// src/components/App/App.tsx
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 
 import SearchBar from '../SearchBar/SearchBar';
 import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
+import PaginationControl from '../PaginationControl/PaginationControl';
 
-import type { Movie } from '../../types/movie';
+import type { Movie, SearchResponse } from '../../types/movie';
 import { fetchMovies } from '../../services/movieService';
-
 import { Toaster, toast } from 'react-hot-toast';
-import 'modern-normalize/modern-normalize.css';
+
 import css from './App.module.css';
 
-
 export default function App() {
-  // --- state ---
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Movie | null>(null);
 
- 
-  const lastQueryRef = useRef<string>('');
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
 
-  // --- handlers ---
-  async function handleSearch(rawQuery: string) {
-    const q = rawQuery.trim();
+  const enabled = useMemo(() => query.trim().length > 0, [query]);
 
+  const { data, isPending, isFetching, isError, error } =
+    useQuery<SearchResponse, AxiosError>({
+      queryKey: ['movies', query, page],
+      enabled,
+      queryFn: () => fetchMovies(query, page),
+      staleTime: 60_000,
+      retry: 1,
+      placeholderData: (prev) => prev,
+    });
+
+  const movies = data?.results ?? [];
+  const totalPages = Math.min(data?.total_pages ?? 0, 500);
+
+  function handleSearch(raw: string) {
+    const q = raw.trim();
     if (!q) {
       toast('Please enter your search query.');
       return;
     }
-
-    if (q === lastQueryRef.current) return;
-    lastQueryRef.current = q;
-
-    setHasError(false);
-    setLoading(true);
-    setMovies([]); 
-
-    try {
-      const result = await fetchMovies(q);
-
-      if (!result.length) {
-        toast('No movies found for your request.');
-      }
-      setMovies(result);
-    } catch {
-      setHasError(true);
-    } finally {
-      setLoading(false);
-    }
+    setQuery(q);
   }
 
-  function handleSelect(movie: Movie) {
-    setSelected(movie);
-  
-    document.body.style.overflow = 'hidden';
-  }
-
-  function handleCloseModal() {
-    setSelected(null);
-    document.body.style.overflow = '';
-  }
-
-  // --- render ---
   return (
-    <>
-      <Toaster position="top-right" />
-
-      <div className={css.app}>
-        <SearchBar onSubmit={handleSearch} />
-
-        {loading && <Loader />}
-
-        {hasError && !loading && <ErrorMessage />}
-
-        {!loading && !hasError && movies.length > 0 && (
-          <MovieGrid movies={movies} onSelect={handleSelect} />
-        )}
-      </div>
-
+    <div className={css.app}>
       
-      {selected && <MovieModal movie={selected} onClose={handleCloseModal} />}
-    </>
+
+      <div className={css.headerBar}>
+  <span className={css.brand}>Powered by TMDB</span>
+  <SearchBar onSubmit={handleSearch} initialValue={query} />
+</div>
+
+      {totalPages > 1 && (
+        <PaginationControl totalPages={totalPages} page={page} setPage={setPage} />
+      )}
+
+      {!enabled && <div className={css.stateBox}>Type a movie title to start searching.</div>}
+      {enabled && (isPending || (isFetching && !data)) && <Loader />}
+      {isError && !isPending && !isFetching && (
+        <ErrorMessage>{error?.message || 'Something went wrong. Please try again later.'}</ErrorMessage>
+      )}
+      {!isPending && !isError && enabled && movies.length === 0 && (
+        <div className={css.stateBox}>No results found. Try a different query.</div>
+      )}
+
+      {!isPending && !isError && movies.length > 0 && (
+        <MovieGrid movies={movies} onSelect={setSelected} />
+      )}
+
+      {selected && <MovieModal movie={selected} onClose={() => setSelected(null)} />}
+      <Toaster position="top-right" />
+    </div>
   );
 }

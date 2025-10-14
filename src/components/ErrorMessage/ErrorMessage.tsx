@@ -1,5 +1,5 @@
 import css from './ErrorMessage.module.css';
-
-export default function ErrorMessage() {
-  return <p className={css.text}>There was an error, please try again...</p>;
+export interface ErrorMessageProps { children?: React.ReactNode }
+export default function ErrorMessage({ children }: ErrorMessageProps) {
+  return <div className={css.box}>{children ?? 'Something went wrong. Please try again later.'}</div>;
 }

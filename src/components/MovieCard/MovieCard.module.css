@@ -1,0 +1,50 @@
+.card {
+  background: transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: block;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* контейнер для постера */
+.imageWrap {
+  position: relative;
+}
+
+/* постер */
+.poster {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+}
+
+/* полупрозрачная чёрная плашка снизу с названием */
+.titleBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.75); /* тёмная, полупрозрачная */
+  color: #fff;
+  padding: 8px 10px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 0 0 8px 8px;
+}
+
+/* при наведении можно слегка осветлить плашку */
+.card:hover .titleBar {
+  background: rgba(0, 0, 0, 0.85);
+}

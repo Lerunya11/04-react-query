@@ -1,4 +1,3 @@
-// src/components/App/App.tsx
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
@@ -10,7 +9,8 @@ import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
 import PaginationControl from '../PaginationControl/PaginationControl';
 
-import type { Movie, SearchResponse } from '../../types/movie';
+import type { Movie } from '../../types/movie';
+import type { SearchResponse } from '../../services/movieService';
 import { fetchMovies } from '../../services/movieService';
 
 import { Toaster, toast } from 'react-hot-toast';
@@ -35,8 +35,7 @@ export default function App() {
       queryFn: () => fetchMovies(query, page),
       staleTime: 60_000,
       retry: 1,
-      // Показывать прошлую страницу, пока грузится новая
-      placeholderData: (prev) => prev,
+       placeholderData: (prev) => prev,
     });
 
   const movies = data?.results ?? [];

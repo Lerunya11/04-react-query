@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import type { Movie } from '../../types/movie';
 import css from './MovieModal.module.css';
@@ -8,55 +8,62 @@ interface MovieModalProps {
   onClose: () => void;
 }
 
-// Локальный хелпер: строит ссылку на картинку TMDB или даёт плейсхолдер
-const IMG_BASE = 'https://image.tmdb.org/t/p/';
-function buildImageUrl(path: string | null, size: 'w780' | 'original' = 'w780') {
-  return path ? `${IMG_BASE}${size}${path}` : 'https://via.placeholder.com/780x439?text=No+Image';
-}
+const modalRoot = document.getElementById('modal-root') as HTMLElement;
 
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
-  // Закрытие по Esc
+  // Закрытие по Esc + блокировка/восстановление скролла body
   useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    document.addEventListener('keydown', onEsc);
-    return () => document.removeEventListener('keydown', onEsc);
+    window.addEventListener('keydown', onKey);
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';              
+
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;        
+    };
   }, [onClose]);
 
-  // Клик по подложке закрывает модалку
-  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Закрытие по клику на бэкдроп
+  function onBackdropClick(e: MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose();
-  };
+  }
 
-  // Содержимое модалки
-  const modal = (
-    <div className={css.backdrop} role="dialog" aria-modal="true" onClick={handleBackdrop}>
-      <div className={css.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={css.closeButton} aria-label="Close modal" onClick={onClose} type="button">
-          &times;
+  const imgPath = movie.backdrop_path ?? movie.poster_path;
+  const imgUrl = imgPath ? `https://image.tmdb.org/t/p/w780${imgPath}` : undefined;
+
+  const rating10 = Math.round((movie.vote_average ?? 0) * 10) / 10;
+
+  return createPortal(
+    <div className={css.backdrop} onClick={onBackdropClick} role="dialog" aria-modal="true">
+      <div className={css.modal}>
+        <button
+          type="button"
+          className={css.close}
+          aria-label="Close modal"
+          onClick={onClose}
+        >
+          ×
         </button>
 
-        <img
-          className={css.image}
-          src={buildImageUrl(movie.backdrop_path, 'original')}
-          alt={movie.title}
-        />
-
         <div className={css.content}>
-          <h2>{movie.title}</h2>
-          {movie.overview && <p>{movie.overview}</p>}
-          <p>
+          {imgUrl && <img className={css.image} src={imgUrl} alt={movie.title} />}
+
+          <h2 className={css.title}>{movie.title}</h2>
+          <p className={css.overview}>{movie.overview || '—'}</p>
+
+          <p className={css.meta}>
             <strong>Release Date:</strong> {movie.release_date || '—'}
           </p>
-          <p>
-            <strong>Rating:</strong> {movie.vote_average}/10
+          <p className={css.meta}>
+            <strong>Rating:</strong> {rating10 || 0}/10
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    modalRoot
   );
-
-  // Порталим в body — не нужен отдельный #modal-root
-  return createPortal(modal, document.body);
 }
